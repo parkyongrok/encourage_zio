@@ -4,14 +4,18 @@ import random
 import datetime
 
 from gtts import gTTS
-from playsound import playsound
+# from playsound import playsound
 
+import streamlit as st
+
+############### 상수 설정 ###############
 BEREADY=0
 BEGIN_CLASS=1
 BEGIN_BREAK=2
 ENCOURAGE=3
 END=4
 
+############### 응원 메세지 LIST ###############
 text_list = [
     ["넌 정말 특별해."],
     ["너는 소중한 존재야."],
@@ -69,18 +73,29 @@ text_list = [
     ["네가 좋아하는 것을 하길 바래."],
     ["항상 웃음을 잃지 마."]]
 
+############### Function Definition ###############
+# play_audio(text_for_audio:str) -> None
+# generate_text(time_flag:int, time_study:int, time_break:int) -> str
+# send_encourage_message(time_study:int, time_break:int, repeatation:int, time_encourage:int)->None
+# click_button()->None:
+
 
 def play_audio(text_for_audio:str) -> None:
+    # print(f"{datetime.datetime.now()} : function >>> play_audio") # for TEST
     tts = gTTS(
         text_for_audio,
         lang = 'ko',
         slow = False
         )
-    tts.save('./audio.mp3')    
-    playsound('./audio.mp3')
-    os.remove('./audio.mp3')
+    # print(f"{datetime.datetime.now()} : gTTS generated") # for TEST
+    tts.save('audio.mp3')
+    # print(f"{datetime.datetime.now()} : Audio.mp3 saved") # for TEST
+    # playsound('audio.mp3') # Python local 환경에서 사용하다 Streamlit에서 실행 안되어서 st.audio 로 대체
+    st.audio("audio.mp3",format="audio/mpeg",loop=False,autoplay=True)
+    os.remove('audio.mp3')
     
 def generate_text(time_flag:int, time_study:int, time_break:int) -> str:
+    # print(f"{datetime.datetime.now()} : function >>> generate_text") # for TEST
     if time_flag == BEREADY:
         return f"지오야, 이제 곧 시작이야. 앉아서 준비하자."
     elif time_flag == BEGIN_CLASS:
@@ -92,30 +107,65 @@ def generate_text(time_flag:int, time_study:int, time_break:int) -> str:
     elif time_flag == END:
         return f"지오야, 잘 했어! 정해진 시간동안 계힉한 일들은 잘 마무리했어?"
 
-time_study = int(input("수업 시간은 몇분인가요"))*60
-time_break = int(input("쉬는 시간을 몇분인가요"))*60
-repeatation = int(input("반복할 횟수를 정하세요"))
-time_encourage = int(input("응원 메시지는 몇분에 한번씩 보낼까요?"))*60
+def send_encourage_message(time_study:int, time_break:int, repeatation:int, time_encourage:int)->None:
+    # print(f"{datetime.datetime.now()} : function >>> send_encourage_message") # for TEST
+    for i in range(repeatation):
+        play_audio(generate_text(BEREADY,time_study,time_break))
+        # print(f"{datetime.datetime.now()} : Session {i} : Be Ready") # for TEST
+        # time.sleep(1*60)
+        time.sleep(1*10) # for TEST
+        
+        play_audio(generate_text(BEGIN_CLASS,time_study,time_break))
+        # print(f"{datetime.datetime.now()} : Session {i} : Begin Class") # for TEST
+        
+        for j in range(1,int(time_study/60)):
+            if (j*60) % time_encourage == 0:
+                play_audio(generate_text(ENCOURAGE,time_study,time_break))
+                # print(f"{datetime.datetime.now()} : Session {i}-{j} : Encourage")  # for TEST
+            # time.sleep(60)
+            time.sleep(10)  # for TEST
+        
+        play_audio(generate_text(BEGIN_BREAK,time_study,time_break))
+        # print(f"{datetime.datetime.now()} : Session {i} : Breaktime") # for TEST
+        # time.sleep(time_break)
+        time.sleep(10) # for TEST
 
-for i in range(repeatation):
-    play_audio(generate_text(BEREADY,time_study,time_break))
-    print(f"{datetime.datetime.now()} : Session {i} : Be Ready")
-    # time.sleep(1*60)
-    time.sleep(1*10) # for test
-    
-    play_audio(generate_text(BEGIN_CLASS,time_study,time_break))
-    print(f"{datetime.datetime.now()} : Session {i} : Begin Class")
-    
-    for j in range(1,int(time_study/60)):
-        if (j*60) % time_encourage == 0:
-            play_audio(generate_text(ENCOURAGE,time_study,time_break))
-            print(f"{datetime.datetime.now()} : Session {i}-{j} : Encourage")
-        # time.sleep(60)
-        time.sleep(10) # for test
-    
-    play_audio(generate_text(BEGIN_BREAK,time_study,time_break))
-    print(f"{datetime.datetime.now()} : Session {i} : Breaktime")
-    # time.sleep(time_break)
-    time.sleep(10) # for test
+    play_audio(generate_text(END,time_study,time_break)) 
 
-play_audio(generate_text(END)) 
+def click_button()->None:
+    # print(f"{datetime.datetime.now()} : function >>> click_button") # for TEST
+    st.session_state.clicked = True
+
+
+############### Streamlit 화면 구성 ###############
+
+st.title(":sunglasses: :blue[Encourage our kids]")
+st.divider()
+
+st.subheader(":notebook: :orange[수업 시간은 몇분으로 할까요?]")
+time_study = int(st.slider("수업 시간",min_value=0, max_value=50, step=5, label_visibility="collapsed"))*60
+st.write(":grey[선택하신 수업 시간은] ", int(time_study/60), ":grey[분 입니다]")
+st.write("")
+
+st.subheader(":man_dancing: :orange[쉬는 시간은 몇분으로 할까요?]")
+time_break = int(st.slider("쉬는 시간",min_value=0, max_value=50, step=5, label_visibility="collapsed"))*60
+st.write(":grey[선택하신 쉬는 시간은] ", int(time_study/60), ":grey[분 입니다]")
+st.write("")
+
+st.subheader(":bookmark_tabs: :orange[몇 번 반복학까요?]")
+repeatation = int(st.slider("반복 횟수",min_value=0, max_value=10, step=1, label_visibility="collapsed"))
+st.write(":grey[선택하신 반복 횟수는] ", repeatation, ":grey[교시 입니다]")
+st.write("")
+
+st.subheader(":man_dancing: :rainbow[아이에게 몇분마다 응원할까요?]")
+time_encourage = int(st.slider("반복 횟수",min_value=0, max_value=50, step=5, label_visibility="collapsed"))*60
+st.write(":grey[선택하신 응원 시간은] ", int(time_encourage/60), ":grey[분마다 입니다]")
+st.write("")
+
+if 'clicked' not in st.session_state:
+    st.session_state.clicked = False
+    
+st.button("시작",on_click=click_button)
+
+if st.session_state.clicked:
+    send_encourage_message(time_study, time_break, repeatation, time_encourage)

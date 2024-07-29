@@ -1,7 +1,7 @@
 import os
 import time
 import random
-import datetime
+# import datetime
 
 from gtts import gTTS
 # from playsound import playsound
@@ -112,8 +112,8 @@ def send_encourage_message(time_study:int, time_break:int, repeatation:int, time
     for i in range(repeatation):
         play_audio(generate_text(BEREADY,time_study,time_break))
         # print(f"{datetime.datetime.now()} : Session {i} : Be Ready") # for TEST
-        # time.sleep(1*60)
-        time.sleep(1*10) # for TEST
+        time.sleep(1*60)
+        # time.sleep(1*10) # for TEST
         
         play_audio(generate_text(BEGIN_CLASS,time_study,time_break))
         # print(f"{datetime.datetime.now()} : Session {i} : Begin Class") # for TEST
@@ -122,13 +122,13 @@ def send_encourage_message(time_study:int, time_break:int, repeatation:int, time
             if (j*60) % time_encourage == 0:
                 play_audio(generate_text(ENCOURAGE,time_study,time_break))
                 # print(f"{datetime.datetime.now()} : Session {i}-{j} : Encourage")  # for TEST
-            # time.sleep(60)
-            time.sleep(10)  # for TEST
+            time.sleep(60)
+            # time.sleep(10)  # for TEST
         
         play_audio(generate_text(BEGIN_BREAK,time_study,time_break))
         # print(f"{datetime.datetime.now()} : Session {i} : Breaktime") # for TEST
-        # time.sleep(time_break)
-        time.sleep(10) # for TEST
+        time.sleep(time_break)
+        # time.sleep(10) # for TEST
 
     play_audio(generate_text(END,time_study,time_break)) 
 
